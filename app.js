@@ -3,7 +3,7 @@ const app = express();
 const PORT = process.env.PORT || 3000; 
 
 // ★ ここにDiscordで生成したWebhook URLを貼り付ける ★
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/〇〇〇/〇〇〇';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1488459565535203458/rElmmrizlethmw89xlmaYhQyCN66pmKZtkYCVAkM0nkf7fUJ3b4myibNzKH3weTF7Ivu';
 
 app.set('trust proxy', true);
 
