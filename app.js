@@ -3,7 +3,8 @@ const app = express();
 const PORT = process.env.PORT || 3000; 
 
 // ★ ここにDiscordで生成したWebhook URLを貼り付ける ★
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1488459565535203458/rElmmrizlethmw89xlmaYhQyCN66pmKZtkYCVAkM0nkf7fUJ3b4myibNzKH3weTF7Ivu';
+// process.env.〇〇 と書くことで、「Renderに設定した秘密の言葉を使ってね」という指示になります
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 app.set('trust proxy', true);
 
