@@ -1,25 +1,26 @@
 const express = require('express');
 const app = express();
-// Render環境用にポート設定を少しだけ改良しておきます
 const PORT = process.env.PORT || 3000; 
 
 // ★ ここにDiscordで生成したWebhook URLを貼り付ける ★
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1488459565535203458/rElmmrizlethmw89xlmaYhQyCN66pmKZtkYCVAkM0nkf7fUJ3b4myibNzKH3weTF7Ivu';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/〇〇〇/〇〇〇';
 
 app.set('trust proxy', true);
 
 app.get('/', async (req, res) => {
-    let ip = req.ip || req.headers['x-forwarded-for'];
+    // 1. IPアドレスを綺麗に取得する（カンマ区切りの場合は最初の一つだけを取る）
+    let rawIp = req.headers['x-forwarded-for'] || req.ip || '';
+    let ip = rawIp.split(',')[0].trim(); 
 
     try {
+        // 2. IP情報を取得
         const response = await fetch(`http://ip-api.com/json/${ip}`);
         const geoData = await response.json();
 
-        // サーバー側のコンソール出力（記録用）
         console.log('========== 新しいアクセス ==========');
-        console.log(`IP: ${ip}`);
+        console.log(`抽出したIP: ${ip}`);
 
-        // --- ここからDiscordに送るメッセージの組み立て ---
+        // 3. メッセージの組み立て
         let discordMessage = `🚨 **新しいアクセスを検知しました！**\nIPアドレス: \`${ip}\`\n`;
 
         if (geoData.status === 'success') {
@@ -27,28 +28,31 @@ app.get('/', async (req, res) => {
             console.log(`地域: ${geoData.regionName}`);
         } else {
             discordMessage += `位置情報の取得に失敗しました: ${geoData.message}`;
+            console.log(`取得失敗理由: ${geoData.message}`);
         }
-        console.log('====================================\n');
+        console.log('====================================');
 
-        // --- ここからDiscordへデータを送信 (POSTリクエスト) ---
-        await fetch(DISCORD_WEBHOOK_URL, {
+        // 4. Discordへ送信し、その結果も確認する
+        const discordRes = await fetch(DISCORD_WEBHOOK_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                content: discordMessage // contentというキーにメッセージを入れるのがDiscordのルール
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: discordMessage })
         });
 
-        // 訪問者への表示
+        // Discordからの返事をログに出す
+        if (!discordRes.ok) {
+            console.error('❌ Discordへの送信に失敗しました:', discordRes.status, await discordRes.text());
+        } else {
+            console.log('✅ Discordへ通知を送信しました！\n');
+        }
+
         res.send(`
             <h1>ようこそ！</h1>
-            <p>このページを開いたことで、サーバー側のログにアクセス情報が記録されました。</p>
+            <p>アクセス情報が記録されました。</p>
         `);
 
     } catch (error) {
-        console.error('エラーが発生しました:', error);
+        console.error('❌ プログラムの途中でエラーが発生しました:', error.message);
         res.status(500).send('サーバーエラー');
     }
 });
